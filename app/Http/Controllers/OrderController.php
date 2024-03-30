@@ -28,7 +28,12 @@ class OrderController extends Controller
             'payment_form' => 'required|in:cash,cashless',
             'additional_info' => 'nullable|string',
         ]);
-        $order = Order::create($validatedData);
+        
+        // Добавляем user_id в данные перед созданием заказа
+        $validatedData['user_id'] = auth()->id();
+
+        Order::create($validatedData);
+
         return redirect()->route('orders.index')->with('success', 'Order created successfully');
     }
 
@@ -53,7 +58,9 @@ class OrderController extends Controller
             'payment_form' => 'required|in:cash,cashless',
             'additional_info' => 'nullable|string',
         ]);
+        
         $order->update($validatedData);
+
         return redirect()->route('orders.index')->with('success', 'Order updated successfully');
     }
 
