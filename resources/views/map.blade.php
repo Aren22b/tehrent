@@ -6,7 +6,7 @@
     <title>Map View</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
-        #map { height: 1200px; }
+        #map { height: 100vh; } /* Задаем высоту карты на весь экран */
     </style>
 </head>
 <body>
@@ -15,24 +15,27 @@
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
-    var map = L.map('map').setView([51.505, -0.09], 13);
+    var map = L.map('map').setView([53.505, 83.309], 13); // Вы можете установить начальное положение карты в соответствии с вашим регионом
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Представим, что у нас есть массив orders с данными о заказах
-    var orders = [
-        { id: 1, lat: 51.505, lng: -0.09, description: 'Order 1 description' },
-        { id: 2, lat: 51.515, lng: -0.10, description: 'Order 2 description' },
-        // Добавьте сюда дополнительные заказы
-    ];
+    // Использование переменной orders, переданной из контроллера Laravel
+    var orders = @json($orders);
 
-    // Добавляем маркеры на карту для каждого заказа
-    orders.forEach(function(order) {
-        L.marker([order.lat, order.lng]).addTo(map)
-            .bindPopup(order.description);
-    });
+    // Проверка, получен ли массив orders и является ли он не пустым
+    if (Array.isArray(orders) && orders.length) {
+        // Используем функцию forEach для добавления каждого заказа на карту
+        orders.forEach(function(order) {
+            if (order.latitude && order.longitude) {
+                L.marker([order.latitude, order.longitude]).addTo(map)
+                    .bindPopup(order.description); // Используем описание заказа для отображения в всплывающем окне
+            }
+        });
+    } else {
+        console.log("Нет данных о заказах для отображения на карте.");
+    }
 </script>
 
 </body>

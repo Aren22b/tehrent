@@ -3,6 +3,7 @@
 use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PerformerController;
+use App\Models\Order;
 
 Route::get('/', function () {
     return view('welcome');
@@ -18,11 +19,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::resource('orders', OrderController::class);
     Route::get('/performers', [PerformerController::class, 'index']);
+    Route::get('/map', function () {
+        $orders = Order::all(); // Получаем все заказы из базы данных
+        return view('map', compact('orders')); // Передаём их в представление
 });
-
-// Добавленный маршрут для страницы с картой
-Route::get('/map', function () {
-    return view('map'); // Убедитесь, что у вас есть файл map.blade.php в папке resources/views
 });
 
 require __DIR__.'/auth.php';
