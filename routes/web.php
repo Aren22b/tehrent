@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PerformerController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -16,6 +17,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::resource('orders', OrderController::class);
+    Route::get('/performers', [PerformerController::class, 'index']);
 });
 
 // Добавленный маршрут для страницы с картой

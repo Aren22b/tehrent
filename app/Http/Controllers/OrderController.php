@@ -26,6 +26,8 @@ class OrderController extends Controller
             'price_per_hour' => 'required|numeric',
             'duration' => 'required|integer',
             'payment_form' => 'required|in:cash,cashless',
+            'latitude' => 'required|numeric', // Проверка широты
+            'longitude' => 'required|numeric', // Проверка долготы
             'additional_info' => 'nullable|string',
         ]);
         
@@ -56,6 +58,8 @@ class OrderController extends Controller
             'price_per_hour' => 'required|numeric',
             'duration' => 'required|integer',
             'payment_form' => 'required|in:cash,cashless',
+            'latitude' => 'required|numeric', // Проверка широты
+            'longitude' => 'required|numeric', // Проверка долготы
             'additional_info' => 'nullable|string',
         ]);
         

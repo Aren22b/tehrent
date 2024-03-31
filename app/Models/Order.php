@@ -17,6 +17,8 @@ class Order extends Model
         'duration',
         'payment_form',
         'additional_info',
+        'latitude',  
+        'longitude',
     ];
 
     // Остальная часть модели...

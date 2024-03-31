@@ -47,6 +47,18 @@
             </select>
         </div>
 
+ <!-- Поле для ввода широты -->
+ <div>
+            <label for="latitude">Широта:</label>
+    <input type="text" name="latitude" id="latitude" required>
+</div>
+
+<!-- Поле для ввода долготы -->
+<div>
+    <label for="longitude">Долгота:</label>
+    <input type="text" name="longitude" id="longitude" required>
+</div>
+
         <div>
             <label for="additional_info">Дополнительная информация:</label>
             <textarea name="additional_info" id="additional_info">{{ $order->additional_info }}</textarea>

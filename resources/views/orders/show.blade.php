@@ -14,6 +14,8 @@
     <p><strong>Цена за час:</strong> {{ $order->price_per_hour }} руб.</p>
     <p><strong>Продолжительность:</strong> {{ $order->duration }} ч.</p>
     <p><strong>Форма оплаты:</strong> {{ $order->payment_form }}</p>
+    <p><strong>Широта:</strong> {{ $order->latitude }}</p>
+    <p><strong>Долгота:</strong> {{ $order->longitude }}</p>
     <p><strong>Дополнительная информация:</strong> {{ $order->additional_info }}</p>
     <a href="{{ route('orders.edit', $order) }}">Редактировать</a>
 
