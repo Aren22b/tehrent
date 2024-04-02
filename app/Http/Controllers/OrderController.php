@@ -73,4 +73,10 @@ class OrderController extends Controller
         $order->delete();
         return redirect()->route('orders.index')->with('success', 'Order deleted successfully');
     }
+
+    public function map()
+    {
+        $orders = Order::all(); // Получаем все заказы из базы данных
+        return view('map', compact('orders')); // Предполагаем, что у вас есть представление 'map.blade.php'
+    }
 }

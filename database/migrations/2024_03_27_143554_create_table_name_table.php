@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('table_name', function (Blueprint $table) {
+        Schema::create('performers', function (Blueprint $table) {
             $table->id();
+            $table->decimal('latitude', 10, 8)->nullable();
+            $table->decimal('longitude', 11, 8)->nullable();
+            $table->unsignedBigInteger('user_id')->nullable(); // Добавляем столбец user_id
+            $table->foreign('user_id')->references('id')->on('users'); // Устанавливаем связь с таблицей users
             $table->timestamps();
         });
     }
@@ -22,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('table_name');
+        Schema::dropIfExists('performers');
     }
 };

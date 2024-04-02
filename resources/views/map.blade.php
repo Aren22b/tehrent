@@ -3,39 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Map View</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <title>Performer Map View</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
-        #map { height: 100vh; } /* Задаем высоту карты на весь экран */
+        #map { height: 100vh; }
     </style>
 </head>
 <body>
 
 <div id="map"></div>
 
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script>
-    var map = L.map('map').setView([53.505, 83.309], 13); // Вы можете установить начальное положение карты в соответствии с вашим регионом
+    var map = L.map('map').setView([59.9342802, 30.3350986], 13); // Значения центра и масштаба карты
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Использование переменной orders, переданной из контроллера Laravel
-    var orders = @json($orders);
-
-    // Проверка, получен ли массив orders и является ли он не пустым
-    if (Array.isArray(orders) && orders.length) {
-        // Используем функцию forEach для добавления каждого заказа на карту
-        orders.forEach(function(order) {
-            if (order.latitude && order.longitude) {
-                L.marker([order.latitude, order.longitude]).addTo(map)
-                    .bindPopup(order.description); // Используем описание заказа для отображения в всплывающем окне
-            }
-        });
-    } else {
-        console.log("Нет данных о заказах для отображения на карте.");
+    // Функция для добавления маркера исполнителя на карту
+    function addPerformerMarker(performer) {
+        var marker = L.marker([performer.latitude, performer.longitude]).addTo(map);
+        marker.bindPopup(performer.name).openPopup();
+        map.setView([performer.latitude, performer.longitude], 13);
     }
+
+    // Получение данных о местоположении исполнителя и добавление маркера на карту
+    fetch('/get/performer-locations')
+        .then(response => response.json())
+        .then(data => {for (let pin of data) {
+            addPerformerMarker(pin)
+        }})
+        .catch(error => console.error('Ошибка при получении данных исполнителя:', error));
 </script>
 
 </body>
