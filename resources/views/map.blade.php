@@ -7,12 +7,25 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
         #map { height: 90vh; }
+        #route-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 10px;
+            background-color: red;
+            color: white;
+            display: none; /* Изначально скрыт */
+            border-radius: 5px;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
 
 <div id="map"></div>
-<!-- Вставьте этот код после <div id="map"></div> -->
+<div id="route-info">
+  <!-- Сюда будут вставлены данные маршрута -->
+</div>
 <button onclick="drawRoute()">Проложить маршрут</button>
 
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
@@ -53,28 +66,30 @@
         var routeUrl = `http://localhost:5000/route/v1/driving/${startPoint.lng},${startPoint.lat};${endPoint.lng},${endPoint.lat}?overview=full&geometries=geojson`;
         console.log('Fetching route with URL:', routeUrl);
         fetch(routeUrl)
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok: ' + response.statusText);
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
-                console.log('Route data:', data); // Добавить эту строку
+                console.log(data); // Проверка данных в консоли
                 if (data.code === 'Ok') {
                     var coordinates = data.routes[0].geometry.coordinates;
-                    var latlngs = coordinates.map(function(coord) {
-                        return [coord[1], coord[0]];
-                    });
+                    var latlngs = coordinates.map(coord => [coord[1], coord[0]]);
                     var polyline = L.polyline(latlngs, {color: 'blue'}).addTo(map);
                     map.fitBounds(polyline.getBounds());
+
+                    // Отображаем информацию о маршруте на странице
+                    var distance = (data.routes[0].distance / 1000).toFixed(2); // км
+                    var duration = (data.routes[0].duration / 60).toFixed(2); // мин
+                    console.log(`Расстояние: ${distance} км, Время в пути: ${duration} мин`); // Дополнительная проверка
+                    var routeInfoDiv = document.getElementById('route-info');
+                    routeInfoDiv.innerHTML = `Расстояние: ${distance} км<br>Время в пути: ${duration} мин`;
+                    routeInfoDiv.style.display = 'block'; // Убедитесь, что элемент виден
                 } else {
                     console.error('Ошибка при построении маршрута:', data.message);
                 }
             })
-            .catch(error => console.error('Ошибка при запросе маршрута:', error));
+            .catch(error => {
+                console.error('Ошибка при запросе маршрута:', error);
+            });
     }
-
 </script>
 
 </body>
