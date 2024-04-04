@@ -25,6 +25,20 @@ Route::middleware('auth')->group(function () {
     //Route::get('/performer-location', [PerformerController::class, 'getPerformerLocation']);
 });
 
+// routes/web.php
+
+Route::view('/build-route', 'build_route'); // Добавь маршрут для отображения твоего нового представления
+
+// Добавь маршрут для функции getRoute
+Route::get('/route/{startLong}/{startLat}/{endLong}/{endLat}', 'RouteController@getRoute');
+
+// В файле routes/web.php
+use App\Http\Controllers\RouteController;
+
+// Добавь маршрут для функции getRoute
+Route::get('/route/{startLong}/{startLat}/{endLong}/{endLat}', [RouteController::class, 'getRoute']);
+
+
 
 Route::get('get/performer-locations', [PerformerController::class, 'getPerformersLocation']);
 Route::post('set/performer-status', [PerformerController::class, 'updateStatus']);
