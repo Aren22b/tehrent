@@ -30,7 +30,7 @@
 
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script>
-    var map = L.map('map').setView([53.9342802, 83.3350986], 13);
+    var map = L.map('map').setView([55.9342802, 37.3350986], 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
@@ -90,6 +90,37 @@
                 console.error('Ошибка при запросе маршрута:', error);
             });
     }
+
+    map.on('dblclick', function(e) {
+    geocodeLatLng(e.latlng, function(address) {
+        L.popup()
+            .setLatLng(e.latlng)
+            .setContent(address)
+            .openOn(map);
+    });
+});
+
+function geocodeLatLng(latlng, callback) {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}`;
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.address) {
+                const addressParts = [];
+                if (data.address.road) addressParts.push(data.address.road);
+                if (data.address.house_number) addressParts.push(data.address.house_number);
+                callback(addressParts.join(', '));
+            } else {
+                callback('Адрес не найден');
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка при запросе адреса:', error);
+            callback('Ошибка при запросе адреса');
+        });
+}
+
+
 </script>
 
 </body>
