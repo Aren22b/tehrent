@@ -5,18 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Performer Map View</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <style>
         #map { height: 90vh; }
-        #route-info {
+        #route-info, #search-container {
             position: absolute;
             top: 10px;
             left: 10px;
+            z-index: 1000;
+        }
+        #route-info {
             padding: 10px;
             background-color: red;
             color: white;
-            display: none; /* Изначально скрыт */
+            display: none;
             border-radius: 5px;
-            z-index: 1000;
+        }
+        #search-container {
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #address-input, #search-button {
+            color: black;
+            padding: 5px;
+            width: 200px;
+            margin-bottom: 5px; /* Отступ между элементами */
+            border-radius: 5px;
+            border: 1px solid #cccccc;
+        }
+        .ui-autocomplete {
+            z-index: 1050;
+            max-height: 300px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            border: 1px solid #ccc;
+            background-color: white;
         }
     </style>
 </head>
@@ -26,7 +52,10 @@
 <div id="route-info">
   <!-- Сюда будут вставлены данные маршрута -->
 </div>
-<button onclick="drawRoute()">Проложить маршрут</button>
+<div id="search-container"> <!-- Обертка для поискового контейнера -->
+    <input type="text" id="address-input" placeholder="Введите адрес" />
+    <button id="search-button">Найти адрес</button>
+</div>
 
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script>
@@ -37,91 +66,61 @@
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    let startPoint, endPoint;
-
-    map.on('click', function(e) {
-        if (!startPoint) {
-            startPoint = e.latlng;
-            L.marker(startPoint).addTo(map).bindPopup('Точка А').openPopup();
-        } else if (!endPoint) {
-            endPoint = e.latlng;
-            L.marker(endPoint).addTo(map).bindPopup('Точка Б').openPopup();
-        } else {
-            map.eachLayer(function(layer) {
-                if (!(layer instanceof L.TileLayer)) {
-                    map.removeLayer(layer);
-                }
-            });
-            startPoint = e.latlng;
-            L.marker(startPoint).addTo(map).bindPopup('Точка А').openPopup();
-            endPoint = null;
-        }
-    });
-
-    function drawRoute() {
-        if (!startPoint || !endPoint) {
-            alert('Необходимо установить обе точки маршрута перед его построением.');
-            return;
-        }
-        var routeUrl = `http://localhost:5000/route/v1/driving/${startPoint.lng},${startPoint.lat};${endPoint.lng},${endPoint.lat}?overview=full&geometries=geojson`;
-        console.log('Fetching route with URL:', routeUrl);
-        fetch(routeUrl)
-            .then(response => response.json())
-            .then(data => {
-                console.log(data); // Проверка данных в консоли
-                if (data.code === 'Ok') {
-                    var coordinates = data.routes[0].geometry.coordinates;
-                    var latlngs = coordinates.map(coord => [coord[1], coord[0]]);
-                    var polyline = L.polyline(latlngs, {color: 'blue'}).addTo(map);
-                    map.fitBounds(polyline.getBounds());
-
-                    // Отображаем информацию о маршруте на странице
-                    var distance = (data.routes[0].distance / 1000).toFixed(2); // км
-                    var duration = (data.routes[0].duration / 60).toFixed(2); // мин
-                    console.log(`Расстояние: ${distance} км, Время в пути: ${duration} мин`); // Дополнительная проверка
-                    var routeInfoDiv = document.getElementById('route-info');
-                    routeInfoDiv.innerHTML = `Расстояние: ${distance} км<br>Время в пути: ${duration} мин`;
-                    routeInfoDiv.style.display = 'block'; // Убедитесь, что элемент виден
-                } else {
-                    console.error('Ошибка при построении маршрута:', data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Ошибка при запросе маршрута:', error);
-            });
-    }
-
-    map.on('dblclick', function(e) {
-    geocodeLatLng(e.latlng, function(address) {
-        L.popup()
-            .setLatLng(e.latlng)
-            .setContent(address)
-            .openOn(map);
-    });
-});
-
-function geocodeLatLng(latlng, callback) {
-    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}`;
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            if (data.address) {
-                const addressParts = [];
-                if (data.address.road) addressParts.push(data.address.road);
-                if (data.address.house_number) addressParts.push(data.address.house_number);
-                callback(addressParts.join(', '));
-            } else {
-                callback('Адрес не найден');
+    $(function() {
+        $("#address-input").autocomplete({
+            source: function(request, response) {
+                $.ajax({
+                    url: "https://nominatim.openstreetmap.org/search",
+                    dataType: "json",
+                    data: {
+                        q: request.term,
+                        format: "json"
+                    },
+                    success: function(data) {
+                        response($.map(data, function(item) {
+                            return {
+                                label: item.display_name,
+                                value: item.display_name,
+                                lat: item.lat,
+                                lon: item.lon
+                            };
+                        }));
+                    }
+                });
+            },
+            minLength: 3,
+            select: function(event, ui) {
+                var coordinates = new L.LatLng(ui.item.lat, ui.item.lon);
+                L.marker(coordinates).addTo(map).bindPopup(ui.item.label).openPopup();
+                map.setView(coordinates, 18);
             }
-        })
-        .catch(error => {
-            console.error('Ошибка при запросе адреса:', error);
-            callback('Ошибка при запросе адреса');
         });
-}
+    });
 
-
+    $('#search-button').click(function() {
+        var address = $('#address-input').val();
+        $.ajax({
+            url: "https://nominatim.openstreetmap.org/search",
+            dataType: "json",
+            data: {
+                q: address,
+                format: "json"
+            },
+            success: function(data) {
+                if (data.length > 0) {
+                    var item = data[0];
+                    var coordinates = new L.LatLng(item.lat, item.lon);
+                    L.marker(coordinates).addTo(map).bindPopup(item.display_name).openPopup();
+                    map.setView(coordinates, 18);
+                } else {
+                    alert('Адрес не найден');
+                }
+            },
+            error: function() {
+                alert('Ошибка при поиске адреса');
+            }
+        });
+    });
 </script>
-
 </body>
 </html>
